@@ -1,0 +1,13 @@
+diff --git a/mp-ctl/ResourceQueues.cpp b/mp-ctl/ResourceQueues.cpp
+index 8fd800a..870d50d 100644
+--- a/mp-ctl/ResourceQueues.cpp
++++ b/mp-ctl/ResourceQueues.cpp
+@@ -66,7 +66,7 @@ q_node *ResourceQueue::GetNode(Resource &resObj) {
+     unsigned short idx = resObj.qindex;
+ 
+     if ((idx >= MAX_MINOR_RESOURCES) ||
+-        (resObj.core < 0) || (resObj.core > tc.getTotalNumCores())) {
++        (resObj.core < 0) || (resObj.core >= tc.getTotalNumCores())) {
+         return NULL;
+     }
+ 
