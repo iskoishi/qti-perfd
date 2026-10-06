@@ -1,0 +1,35 @@
+diff --git a/perfservice/PerfService.cpp b/perfservice/PerfService.cpp
+index 404e322..2727c13 100644
+--- a/perfservice/PerfService.cpp
++++ b/perfservice/PerfService.cpp
+@@ -91,7 +91,30 @@ PerfService::PerfService() {
+         }
+     }
+ }
++/*
++ * Access control for the app-reachable perf service.
++ *
++ * vendor.perfservice is a member of the SELinux app_api_service attribute, so any
++ * installed application can find and call it. The only authorization previously in
++ * the design was a client-side signature comparison inside QPerformance.jar, which
++ * a client that builds its own binder transaction never performs. Add the missing
++ * server-side check here.
++ *
++ * The allow-list is deliberately short and must be extended per OEM. Note that it
++ * also rejects Qualcomm's own Java client when that client runs as an unprivileged
++ * uid; the vendor has to reconcile the two, not this patch.
++ */
++static bool isTrustedPerfCaller(uid_t uid)
++{
++    return (uid == AID_ROOT || uid == AID_SYSTEM);
++}
++
+ int PerfService::perfLockAcquire(int duration, int len, int* boostsList) {
++    uid_t uid = IPCThreadState::self()->getCallingUid();
++    if (!isTrustedPerfCaller(uid)) {
++        ALOGE("perfLockAcquire denied for uid %d", uid);
++        return -1;
++    }
+     if (!perf_lock_acq) {
+         ALOGE("couldn't get perf_lock_acq function handle.");
+         return -1;
